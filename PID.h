@@ -80,8 +80,7 @@ public:
       
       float currentPos = analogRead(resolverPin)/1024.0;
       
-      Serial.print(analogRead(resolverPin));
-      Serial.print('\t');
+      
       
       currentPos = (1-damping)*currentPos + damping*oldPos;
       
@@ -91,6 +90,8 @@ public:
       int direction = (currentPos < targetPos)? 1 : 0;
       //if (distance > olddistance) direction = !direction;
       
+      /*Serial.print(analogRead(resolverPin));
+      Serial.print('\t');
       Serial.print(currentPos);
       Serial.print('\t');
       Serial.print(targetPos);
@@ -98,16 +99,16 @@ public:
       Serial.print(distance);
       Serial.print('\t');
       Serial.print(direction);
-      Serial.print('\t');
+      Serial.print('\t');*/
       
       float newSpeed;
       if(distance < speedLimitedDistance) {
-//        newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed * (distance/speedLimitedDistance);
+//      newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed * (distance/speedLimitedDistance);
         newSpeed = sqrt(targetSpeed * (distance/speedLimitedDistance));
-        Serial.print('l');
+        //Serial.print('l');
       } else {
-        Serial.print('t');
-//        newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed;
+        //Serial.print('t');
+//      newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed;
         newSpeed = targetSpeed;
       }
       
@@ -118,7 +119,7 @@ public:
       
       if(analogRead(fbPin) > maxFBValue) newSpeed *= 0.5;
       
-      Serial.println(newSpeed);
+      //Serial.println(newSpeed);
       
       digitalWrite(directionPin, direction? HIGH : LOW);
       analogWrite(speedPin, newSpeed*255);

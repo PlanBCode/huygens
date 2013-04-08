@@ -12,7 +12,7 @@
 
 int numRoutes             = 4;
 int currentRoute          = 0;
-int routeTracks[5][1]         = { 
+int routeTracks[5][1]     = { 
   {},
   {},
   {},
@@ -21,14 +21,14 @@ int routeTracks[5][1]         = {
 }; // tracks per object along routes
 float pointerEndPosition = 0; //percentage 0 till 1
 int state                = DEFAULT_STATE;
-int motorSpeed           = 0;
+float motorSpeed         = 1;
 boolean motorDirFoward   = true;
 
 // motor pins
 int motorPosInputPin     = A0; // motor position potmeter
 int motorSpeedPin        = 12; // PWM / D2
 //int motorSFPin         = 11; // status flag
-int motorFBPin           = A0; // analog power consumption feedback
+int motorFBPin           = A1; // analog power consumption feedback
 int motorEnablePin       = 10;
 int motorSlewPin         = 9;
 int motorInversePin      = 8;
@@ -65,21 +65,32 @@ void setup() {
   
   //enable pull-up resistors
   
-  digitalWrite(motorSlewPin,LOW);
+  // move to TimePointer:
+  digitalWrite(motorEnablePin,HIGH);
+  digitalWrite(motorSlewPin,HIGH);
+  //setPwmFrequency(motorSpeedPin,1);
+  TCCR1B=(TCCR1B & 0xF8) | 0x01;
+  pid.gotoPos(0.31,motorSpeed);
+  
   
   Serial.begin(9600);
-  
 }
 
 void loop()  { 
   
   pedal.update();
+  
   routeSelector.update();
   
   while (Serial.available() > 0) {
+    float value = Serial.parseFloat(); 
+    Serial.println(value);
     
-    float topPos = 0.40;
-    float bottomPos = 0.55;
+    pid.gotoPos(value,motorSpeed);
+    
+    // half: 0.3
+    /*float topPos = 0.13;
+    float bottomPos = 0.47;
     float force = 0;
     float pointerPos = 0;
     
@@ -87,15 +98,26 @@ void loop()  {
     pointerPos = mapfloat(force,0.0,1.0,bottomPos,topPos);
     Serial.println(pointerPos);
     
-    //pid.gotoPos(pointerPos,motorSpeed);
+    pid.gotoPos(pointerPos,motorSpeed);*/
   }
+  pid.update();
   
-  delay(10);
+  //delay(10);
 }
 void onPedalPressed(float force) {
-
-  Serial.println(force);
+  Serial.print(force);
   
+  float topPos = 0.45; //0.47
+  float bottomPos = 0.17; //0.17; //0.13
+  float pointerPos = 0;
+  
+  pointerPos = mapfloat(force,0.0,1.0,bottomPos,topPos);
+  pid.gotoPos(pointerPos,motorSpeed);
+  
+  
+  Serial.print(" > ");
+  Serial.println(pointerPos);
+ 
 }
 float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
 {

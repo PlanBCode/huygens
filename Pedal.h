@@ -5,18 +5,28 @@ volatile bool _pedalPressing;
 volatile bool _pedalPressed;
 volatile long int _pedalStartPressingTime;
 volatile long int _pedalPressingTime;
-    
+volatile int _pedalMaxPressingTime;
+
 // pins
 int _pedalInputTopPin;
 int _pedalInputBottomPin;
 
 void pedalTopChanged() {
-  if(digitalRead(_pedalInputTopPin) != LOW) { // if left top
+  //Serial.println('t');
+  if(digitalRead(_pedalInputTopPin) == HIGH) { // if left top
     _pedalStartPressingTime = millis();
     _pedalPressing = true;
+  } else if(_pedalPressing && !_pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
+    int pedalEndPressingTime = millis();
+    if(pedalEndPressingTime-_pedalStartPressingTime > 30) { // debounce prevention
+      _pedalPressingTime = _pedalMaxPressingTime;
+      _pedalPressing = false;
+      _pedalPressed = true;
+    }
   }
 }
 void pedalBottomChanged() {
+  //Serial.println('b');
   if(_pedalPressing && digitalRead(_pedalInputBottomPin) == LOW) { // if reached bottom
     int pedalEndPressingTime = millis();
     _pedalPressingTime = pedalEndPressingTime-_pedalStartPressingTime;
@@ -28,7 +38,7 @@ void pedalBottomChanged() {
 class Pedal {
   
   public: 
-    int maxPressingTime;
+    //int maxPressingTime;
     int pressingTime;
     float force;
     
@@ -44,7 +54,7 @@ class Pedal {
       _pedalStartPressingTime = 0;
       _pedalPressingTime = 0;
       
-      maxPressingTime = 1000; //700
+      _pedalMaxPressingTime = 700; //700
       pressingTime = 0;
       force = 0;
       
@@ -60,13 +70,13 @@ class Pedal {
     }
     
     void update() {
-      //Serial.print(digitalRead(pedalInputTopPin));
+      //Serial.print(digitalRead(_pedalInputTopPin));
       //Serial.print('\t');
-      //Serial.println(digitalRead(pedalInputBottomPin));
+      //Serial.println(digitalRead(_pedalInputBottomPin));
       
-      if(_pedalPressed && _pedalPressingTime < maxPressingTime) {
+      if(_pedalPressed && _pedalPressingTime <= _pedalMaxPressingTime) {
         pressingTime = _pedalPressingTime;
-        force = float(maxPressingTime-pressingTime)/maxPressingTime;
+        force = float(_pedalMaxPressingTime-pressingTime)/_pedalMaxPressingTime;
         force = min(max(force,0),1);
         pedalPressedHandler(force);
         _pedalPressed = false;
