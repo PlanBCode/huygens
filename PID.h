@@ -43,12 +43,14 @@ class PID {
 
     };
     void gotoPos(float _targetPos, float _speed) {
+      #ifdef DEBUG_PID
         Serial.print("  goto: ");
         Serial.print(_targetPos);
         Serial.print(' ');
         Serial.println(_speed);
-        targetPos = min(max(_targetPos,0.0),1.0);
-        targetSpeed = min(max(_speed,0.0),1.0);
+      #endif  
+      targetPos = min(max(_targetPos,0.0),1.0);
+      targetSpeed = min(max(_speed,0.0),1.0);
     };
     /*void update() {
         int newDirection;
@@ -93,12 +95,16 @@ class PID {
     void update() {
       
       currentPos = analogRead(resolverPin)/1024.0;
-      //Serial.print(currentPos);
+      #ifdef DEBUG_PID_VERBOSE
+        Serial.print(currentPos);
+      #endif
       float range = maxPos-minPos;
       currentPos = (currentPos-minPos)/range;
       currentPos = max(min(currentPos,1),0);
-      //Serial.print('>');
-      //Serial.println(currentPos);
+      #ifdef DEBUG_PID_VERBOSE
+        Serial.print('>');
+        Serial.println(currentPos);
+      #endif
       
       
       currentPos = (1-damping)*currentPos + damping*oldPos;
@@ -109,38 +115,47 @@ class PID {
       int direction = (currentPos < targetPos)? 1 : 0;
       //if (distance > olddistance) direction = !direction;
       
-      /*Serial.print(analogRead(resolverPin));
-      Serial.print('\t');
-      Serial.print(currentPos);
-      Serial.print('\t');
-      Serial.print(targetPos);
-      Serial.print('\t');
-      Serial.print(distance);
-      Serial.print('\t');
-      Serial.print(direction);
-      Serial.print('\t');*/
+      #ifdef DEBUG_PID_VERBOSE
+        Serial.print(analogRead(resolverPin));
+        Serial.print('\t');
+        Serial.print(currentPos);
+        Serial.print('\t');
+        Serial.print(targetPos);
+        Serial.print('\t');
+        Serial.print(distance);
+        Serial.print('\t');
+        Serial.print(direction);
+        Serial.print('\t');
+      #endif
       
       float newSpeed;
       if(distance < speedLimitedDistance) {
 //      newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed * (distance/speedLimitedDistance);
         newSpeed = sqrt(targetSpeed * (distance/speedLimitedDistance));
-        //Serial.print('l');
+        #ifdef DEBUG_PID_VERBOSE
+          Serial.print('l');
+        #endif
       } else {
-        //Serial.print('t');
+        #ifdef DEBUG_PID_VERBOSE
+          Serial.print('t');
+        #endif
 //      newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed;
         newSpeed = targetSpeed;
       }
-      
-      //Serial.print(newSpeed);
-      //Serial.print('\t');
+      #ifdef DEBUG_PID_VERBOSE
+        Serial.print(newSpeed);
+        Serial.print('\t');
+      #endif
       //if(newSpeed <= 0.02) newSpeed = 0;
-      
       if(analogRead(fbPin) > maxFB) newSpeed *= 0.5;
-      //Serial.println(newSpeed);
+      #ifdef DEBUG_PID_VERBOSE
+        Serial.println(newSpeed);
+      #endif
       
       digitalWrite(directionPin, direction? HIGH : LOW);
       analogWrite(speedPin, newSpeed*255);
-      //digitalWrite(enablePin, (distance <= 0.02)? LOW: HIGH);
+      // disable motor when it's at target position
+      //digitalWrite(enablePin, (distance <= 0.02)? LOW: HIGH); 
       
       oldPos = currentPos;
     }

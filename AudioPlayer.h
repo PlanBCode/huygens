@@ -40,29 +40,34 @@ class AudioPlayer {
     }
     void update() {
       while (Serial1.available() > 0) {
-        //char c = Serial1.read();
         byte b = Serial1.read();
-        //c = Serial1.parseInt(c);
         if(b == 13) {
-          //Serial.println("");
+          #ifdef DEBUG_AUDIO_PLAYER_SERIAL 
+            Serial.println("");
+          #endif
           newMessage = true;
         } else {
           if(newMessage) {
             char c = b;
-            //Serial.print(c);
+            #ifdef DEBUG_AUDIO_PLAYER_SERIAL 
+              Serial.print(c);
+            #endif
             newMessage = false;
             messageType = c;
             if(messageType == 'S') { // Stopped
               audioFinishedHandler();
             }
-          } /*else if (messageType == 'T') {
+          }
+          #ifdef DEBUG_AUDIO_PLAYER_SERIAL 
+          else if (messageType == 'T') {
             Serial.print(b); 
             char c = b;
             Serial.print(' ');
           } else {
             char c = b;
             Serial.print(c);
-          }*/
+          }
+          #endif
         }
       }
     }

@@ -23,14 +23,17 @@ class RouteSelector {
     
     void update() {
       for(int i=0;i<NUM_ROUTES;i++) {
-        //Serial.print(digitalRead(inputPins[i]));
-        //Serial.print(' ');
+        #ifdef DEBUG_ROUTE_SELECTOR
+          Serial.print(digitalRead(inputPins[i]));
+          Serial.print(' ');
+        #endif
         if(digitalRead(inputPins[i]) == LOW) 
           current = i;
       }
-      //Serial.println(' ');
+      #ifdef DEBUG_ROUTE_SELECTOR
+        Serial.println(' ');
+      #endif
       if(current != prev) {
-        Serial.println(current);
         selectedHandler(current);
       }
       prev = current;

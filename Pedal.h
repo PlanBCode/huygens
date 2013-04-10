@@ -12,19 +12,15 @@ volatile long int __pedalPressingTime;
 volatile int __pedalMaxPressingTime;
 
 void pedalTopChanged() {
-  Serial.println('t');
-  //Serial.println(digitalRead(__pedalInputTopPin));
+  //Serial.println('t');
   if(digitalRead(__pedalInputTopPin) == HIGH) { // if left top
-    //Serial.println('A');
     __pedalStartPressingTime = millis();
     __pedalPressing = true;
   } else if(__pedalPressing && !__pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
-    //Serial.println('B');
     //__pedalEndPressingTime = millis();
     //Serial.println(__pedalEndPressingTime-__pedalStartPressingTime);
     //if(__pedalEndPressingTime-__pedalStartPressingTime > 30) { // debounce prevention
-      //Serial.println('C');
-      __pedalPressingTime = __pedalMaxPressingTime*0; //TEMP//__pedalMaxPressingTime*0.8;
+      __pedalPressingTime = __pedalMaxPressingTime*0; //TEMP //*0.8;
       __pedalPressing = false;
       __pedalPressed = true;
     //}
@@ -81,11 +77,12 @@ class Pedal {
       __pedalPressed = false;
     }
     void update() {
-      //Serial.print(digitalRead(__pedalInputTopPin));
-      //Serial.print('\t');
-      //Serial.println(digitalRead(__pedalInputBottomPin));
-      //Serial.print('u');
-      //Serial.println(__pedalPressed);
+      #ifdef DEBUG_PEDAL_VERBOSE
+        Serial.print(digitalRead(__pedalInputTopPin));
+        Serial.print('\t');
+        Serial.println(digitalRead(__pedalInputBottomPin));
+      #endif
+      
       if(__pedalPressed && __pedalPressingTime <= __pedalMaxPressingTime) {
         pressingTime = __pedalPressingTime;
         force = float(__pedalMaxPressingTime-pressingTime)/__pedalMaxPressingTime;
@@ -93,14 +90,15 @@ class Pedal {
         __pedalPressed = false;
         pressedHandler(force);
         
-        
-        /*Serial.print(pressingTime);
-        Serial.print('/');
-        Serial.print(maxPressingTime);
-        Serial.print(" > ");
-        Serial.println(force);*/
+        #ifdef DEBUG_PEDAL
+          Serial.print(pressingTime);
+          Serial.print('/');
+          Serial.print(__pedalMaxPressingTime);
+          Serial.print(" > ");
+          Serial.println(force);
+        #endif
       }
-      delay(500);
+      //delay(500);
     }
     
 };

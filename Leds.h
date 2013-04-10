@@ -1,47 +1,92 @@
-#define DEBUG_LEDS false
+
+//#include <wprogram.h>
+//#include <wiring_private.h>
+//#include <pins_arduino.h>
 
 class Leds{
   
   private: 
     int* objectLedsPins;
+    int objectLedsState[NUM_LEDS];
     int* routeChoiceLedsPins;  
-    
+    int numLedsEnabled;
 
+    /*int digitalReadOutputPin(uint8_t pin)
+    {
+      uint8_t bit = digitalPinToBitMask(pin);
+      uint8_t port = digitalPinToPort(pin);
+      if (port == NOT_A_PIN) 
+        return LOW;
     
+      return (*portOutputRegister(port) & bit) ? HIGH : LOW;
+    }*/
+
   public: 
-    int current;
     
     Leds(int* _objectLedsPins, int* _routeChoiceLedsPins) {
     //Leds(int _numRoutes, int _numRouteSteps) {
       objectLedsPins = _objectLedsPins;
       routeChoiceLedsPins = _routeChoiceLedsPins;
+      numLedsEnabled = 1;
       
-      for(int i=0;i<NUM_OBJECTS;i++) {
+      for(int i=0;i<NUM_LEDS;i++) {
         int ledPin = objectLedsPins[i];
         pinMode(ledPin, OUTPUT);
+        digitalWrite(ledPin,LOW);
+        objectLedsState[i] = 0;
       }
       
       for(int i=0;i<NUM_ROUTES;i++) {
         pinMode(routeChoiceLedsPins[i],OUTPUT);
       }
+      //Serial.println(numLedsEnabled);
     }
     
     void enableObject(int object) {
-      
+      //Serial.println(numLedsEnabled);
       int ledPin = objectLedsPins[object];
-      Serial.print("  led: ");
-      Serial.println(ledPin);
-      digitalWrite(ledPin, HIGH);
+      if(objectLedsState[object] == 1 || numLedsEnabled > MAX_ENABLED_LEDS) return;
+      
+      #ifndef DISABLE_LEDS
+        digitalWrite(ledPin, HIGH);
+      #endif
+      objectLedsState[object] = 1;
+      numLedsEnabled++;
+      
+      #ifdef DEBUG_LEDS
+        Serial.print("  led: ");
+        Serial.println(ledPin);
+        //Serial.print(' ');
+        //Serial.println(numLedsEnabled);
+      #endif
     }
     void disableObject(int object) {
+      //Serial.println(numLedsEnabled);
       int ledPin = objectLedsPins[object];
+      if(objectLedsState[object] == 0) return;
       digitalWrite(ledPin, LOW);
+      objectLedsState[object] = 0;
+      numLedsEnabled--;
+      
+      #ifdef DEBUG_LEDS
+        Serial.print("  led disable : ");
+        Serial.println(ledPin);
+        //Serial.print(' ');
+        //Serial.println(numLedsEnabled);
+      #endif
     }
     void disableAllObjects() {
-      for(int i=0;i<NUM_OBJECTS;i++) {
+      for(int i=0;i<NUM_LEDS;i++) {
         int ledPin = objectLedsPins[i];
+        if(objectLedsState[i] == 0) continue;
         digitalWrite(ledPin, LOW);
+        objectLedsState[i] = 0;
+        numLedsEnabled--;
       }
+      #ifdef DEBUG_LEDS
+        Serial.println("  led disable all ");
+        //Serial.println(numLedsEnabled);
+      #endif
     }
     void lightRouteSelection(int route) {
       for(int i=0;i<NUM_ROUTES;i++) {
@@ -51,7 +96,7 @@ class Leds{
     void update() {
       
     }
-    
+  
 };
 
 
