@@ -1,41 +1,50 @@
-typedef void (*PedalPressedHandler)(float force);
-PedalPressedHandler pedalPressedHandler;
 
-volatile bool _pedalPressing;
-volatile bool _pedalPressed;
-volatile long int _pedalStartPressingTime;
-volatile long int _pedalPressingTime;
-volatile int _pedalMaxPressingTime;
 
 // pins
-int _pedalInputTopPin;
-int _pedalInputBottomPin;
+int __pedalInputTopPin;
+int __pedalInputBottomPin;
+
+volatile bool __pedalPressing;
+volatile bool __pedalPressed;
+volatile long int __pedalStartPressingTime;
+volatile long int __pedalEndPressingTime;
+volatile long int __pedalPressingTime;
+volatile int __pedalMaxPressingTime;
 
 void pedalTopChanged() {
-  //Serial.println('t');
-  if(digitalRead(_pedalInputTopPin) == HIGH) { // if left top
-    _pedalStartPressingTime = millis();
-    _pedalPressing = true;
-  } else if(_pedalPressing && !_pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
-    int pedalEndPressingTime = millis();
-    if(pedalEndPressingTime-_pedalStartPressingTime > 30) { // debounce prevention
-      _pedalPressingTime = _pedalMaxPressingTime;
-      _pedalPressing = false;
-      _pedalPressed = true;
-    }
+  Serial.println('t');
+  //Serial.println(digitalRead(__pedalInputTopPin));
+  if(digitalRead(__pedalInputTopPin) == HIGH) { // if left top
+    //Serial.println('A');
+    __pedalStartPressingTime = millis();
+    __pedalPressing = true;
+  } else if(__pedalPressing && !__pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
+    //Serial.println('B');
+    //__pedalEndPressingTime = millis();
+    //Serial.println(__pedalEndPressingTime-__pedalStartPressingTime);
+    //if(__pedalEndPressingTime-__pedalStartPressingTime > 30) { // debounce prevention
+      //Serial.println('C');
+      __pedalPressingTime = __pedalMaxPressingTime*0; //TEMP//__pedalMaxPressingTime*0.8;
+      __pedalPressing = false;
+      __pedalPressed = true;
+    //}
   }
 }
 void pedalBottomChanged() {
   //Serial.println('b');
-  if(_pedalPressing && digitalRead(_pedalInputBottomPin) == LOW) { // if reached bottom
+  if(__pedalPressing && digitalRead(__pedalInputBottomPin) == LOW) { // if reached bottom
     int pedalEndPressingTime = millis();
-    _pedalPressingTime = pedalEndPressingTime-_pedalStartPressingTime;
-    _pedalPressing = false;
-    _pedalPressed = true;
+    __pedalPressingTime = pedalEndPressingTime-__pedalStartPressingTime;
+    __pedalPressing = false;
+    __pedalPressed = true;
   }
 }
 
 class Pedal {
+  
+  private: 
+    typedef void (*PedalPressedHandler)(float force);
+    PedalPressedHandler pressedHandler;
   
   public: 
     //int maxPressingTime;
@@ -44,17 +53,17 @@ class Pedal {
     
     Pedal(int inputTopPin, int inputBottomPin, 
           int inputTopInterrupt, int inputBottomInterrupt, 
-          PedalPressedHandler pressedHandler) {
-      _pedalInputTopPin = inputTopPin;
-      _pedalInputBottomPin = inputBottomPin;
-      pedalPressedHandler = pressedHandler;
+          PedalPressedHandler _pressedHandler) {
+      __pedalInputTopPin = inputTopPin;
+      __pedalInputBottomPin = inputBottomPin;
+      pressedHandler = _pressedHandler;
       
-      _pedalPressing = false;
-      _pedalPressed = false;
-      _pedalStartPressingTime = 0;
-      _pedalPressingTime = 0;
+      __pedalPressing = false;
+      __pedalPressed = false;
+      __pedalStartPressingTime = 0;
+      __pedalPressingTime = 0;
       
-      _pedalMaxPressingTime = 700; //700
+      __pedalMaxPressingTime = 700; //700
       pressingTime = 0;
       force = 0;
       
@@ -68,18 +77,22 @@ class Pedal {
       attachInterrupt(inputTopInterrupt, pedalTopChanged, CHANGE);
       attachInterrupt(inputBottomInterrupt, pedalBottomChanged, CHANGE);
     }
-    
+    void reset() {
+      __pedalPressed = false;
+    }
     void update() {
-      //Serial.print(digitalRead(_pedalInputTopPin));
+      //Serial.print(digitalRead(__pedalInputTopPin));
       //Serial.print('\t');
-      //Serial.println(digitalRead(_pedalInputBottomPin));
-      
-      if(_pedalPressed && _pedalPressingTime <= _pedalMaxPressingTime) {
-        pressingTime = _pedalPressingTime;
-        force = float(_pedalMaxPressingTime-pressingTime)/_pedalMaxPressingTime;
+      //Serial.println(digitalRead(__pedalInputBottomPin));
+      //Serial.print('u');
+      //Serial.println(__pedalPressed);
+      if(__pedalPressed && __pedalPressingTime <= __pedalMaxPressingTime) {
+        pressingTime = __pedalPressingTime;
+        force = float(__pedalMaxPressingTime-pressingTime)/__pedalMaxPressingTime;
         force = min(max(force,0),1);
-        pedalPressedHandler(force);
-        _pedalPressed = false;
+        __pedalPressed = false;
+        pressedHandler(force);
+        
         
         /*Serial.print(pressingTime);
         Serial.print('/');
@@ -87,6 +100,7 @@ class Pedal {
         Serial.print(" > ");
         Serial.println(force);*/
       }
+      delay(500);
     }
     
 };

@@ -4,20 +4,27 @@
 #define minSpeed 0.30
 
 class PID {
-public:
+  private:
     int resolverPin;
     int speedPin;
     int directionPin;
     int enablePin;
     int fbPin;
-    
+
+  public:
+    float currentPos;
     float targetPos;
+    float oldPos;
+    
+    float minPos;
+    float maxPos;
+    
     float targetSpeed;
     //float currentPos;
     float currentSpeed;
-    float oldPos;
+
     //int direction;
-    int maxFBValue;
+    int maxFB;
     
     PID(int _resolverPin, int _speedPin, int _directionPin, int _enablePin, int _fbPin) {
         resolverPin = _resolverPin;
@@ -26,13 +33,20 @@ public:
         enablePin = _enablePin;
         fbPin = _fbPin;
         //direction = 0;
-        maxFBValue = 500; //(525mV per Amp) 525*5/5000*1024
+        maxFB = 500; //(525mV per Amp) 525*5/5000*1024
         oldPos = analogRead(resolverPin)/1024.0;
+        
+        minPos = 0;
+        maxPos = 1;
         
 //        setPwmFrequency(speedPin,1);
 
     };
     void gotoPos(float _targetPos, float _speed) {
+        Serial.print("  goto: ");
+        Serial.print(_targetPos);
+        Serial.print(' ');
+        Serial.println(_speed);
         targetPos = min(max(_targetPos,0.0),1.0);
         targetSpeed = min(max(_speed,0.0),1.0);
     };
@@ -78,8 +92,13 @@ public:
     }*/
     void update() {
       
-      float currentPos = analogRead(resolverPin)/1024.0;
-      
+      currentPos = analogRead(resolverPin)/1024.0;
+      //Serial.print(currentPos);
+      float range = maxPos-minPos;
+      currentPos = (currentPos-minPos)/range;
+      currentPos = max(min(currentPos,1),0);
+      //Serial.print('>');
+      //Serial.println(currentPos);
       
       
       currentPos = (1-damping)*currentPos + damping*oldPos;
@@ -116,9 +135,7 @@ public:
       //Serial.print('\t');
       //if(newSpeed <= 0.02) newSpeed = 0;
       
-      
-      if(analogRead(fbPin) > maxFBValue) newSpeed *= 0.5;
-      
+      if(analogRead(fbPin) > maxFB) newSpeed *= 0.5;
       //Serial.println(newSpeed);
       
       digitalWrite(directionPin, direction? HIGH : LOW);
