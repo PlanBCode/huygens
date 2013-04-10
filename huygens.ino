@@ -27,12 +27,12 @@
 //#define DEBUG_START_OBJECT_SELECTOR
 //#define DISABLE_LEDS
 
-#include "arduino.h"
+#include "Arduino.h"
 #include "Pedal.h"
 #include "AudioPlayer.h"
 #include "PID.h"
 #include "StartObjectSelector.h"
-#include "LEDS.h"
+#include "Leds.h"
 
 enum objects { a, b, c, d, e };
 // led pins along routes to light objects (pins 30 - 53) 
