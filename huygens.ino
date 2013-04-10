@@ -1,4 +1,5 @@
-#define NUM_ROUTES 4
+#define NUM_START_OBJECTS 4
+#define NUM_ROUTES 6
 #define MAX_ROUTE_STEPS 6
 #define NUM_OBJECTS 5
 #define MOTOR_SPEED_DOWN 0.75
@@ -16,9 +17,10 @@
 #define DEBUG_FLOW
 //#define DEBUG_SERIAL
 //#define DEBUG_POSITION_OBJECT_MAPPING
+//#define DEBUG_ROUTE_SELECTION
 //#define DEBUG_AUDIO_PLAYER_SERIAL
-#define DEBUG_LEDS 
-#define DEBUG_PID
+//#define DEBUG_LEDS 
+//#define DEBUG_PID
 //#define DEBUG_PID_VERBOSE
 //#define DEBUG_PEDAL
 //#define DEBUG_PEDAL_VERBOSE
@@ -29,15 +31,15 @@
 #include "Pedal.h"
 #include "AudioPlayer.h"
 #include "PID.h"
-#include "RouteSelector.h"
+#include "StartObjectSelector.h"
 #include "LEDS.h"
 
 enum objects { a, b, c, d, e };
 // led pins along routes to light objects (pins 30 - 53) 
 // add ALL leds pins to make sure they are pulled down when off!
 int objectLedsPins[]  = { 
-  //52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,39
-  38,36,34,32,30,53,51,49,47,45,43,41,39,  52,50,48,46,44,42,40,
+  52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,39
+  //38,36,34,32,30,53,51,49,47,45,43,41,39,  52,50,48,46,44,42,40,
 }; 
 float objectPositions[] = { 
   0.2,  0.3,  0.5,  0.75,  1
@@ -55,10 +57,11 @@ int routes[] = {
 };
 int routeStartObjects[] = {a,b,c,d}; // objects in closed that people select
 
-float pointerTopPos      = 0.45; //0.47 // (unmapped) //TODO change to raw int
-float pointerBottomPos   = 0.17; //0.17; //0.13 // (unmapped) //TODO change to raw int
+float pointerTopPos      = 475; //0.43; //0.45; //0.47 // (unmapped)
+float pointerBottomPos   = 137; //0.15; //0.17; //0.17; //0.13 // (unmapped)
 float motorMaxFB         = 500; //(525mV per Amp) 525*5/5000*1024
 int state                = DEFAULT_STATE;
+int currentStartObject   = a;
 int currentRoute         = 0;
 int currentStep          = -1; // starts at -1 for not at first step yet
 int currentObject        = -1;
@@ -73,9 +76,9 @@ int motorFBPin           = A1; // analog power consumption feedback
 int motorEnablePin       = 10;
 int motorSlewPin         = 9;
 int motorInversePin      = 8;
-// route pins
-int routeInputPins[]     = {2,7,5,3}; // input of route selection slider
-int routeChoiceLedsPins[] = {37,35,33,31}; // led pins lightning route choice in closet (pins 30 - 53)
+// startObjects pins
+int startObjectInputPins[] = {2,7,5,3}; // input of start object selection slider
+int startObjectLedsPins[]  = {37,35,33,31}; // led pins lightning start object choice in closet (pins 30 - 53)
 // pedal pins
 int pedalInputTopPin     = 21; //2;
 int pedalInputBottomPin  = 20; //3;
@@ -86,9 +89,9 @@ int inputBottomInterrupt = 3; //1;
 Pedal pedal(pedalInputTopPin,pedalInputBottomPin,
             inputTopInterrupt,inputBottomInterrupt,
             onPedalPressed);
-RouteSelector routeSelector(routeInputPins, onRouteSelected);
+StartObjectSelector startObjectSelector(startObjectInputPins, onStartObjectSelected);
 PID pid(motorPosInputPin,motorSpeedPin,motorInversePin,motorEnablePin,motorFBPin);
-Leds leds(objectLedsPins, routeChoiceLedsPins);
+Leds leds(objectLedsPins, startObjectLedsPins);
 AudioPlayer audioPlayer(objectTracks, onAudioFinished);
 
 void setup() {
@@ -116,7 +119,7 @@ void setup() {
   //state = UP_STATE;
   //audioPlayer.playObject(a);
   
-  gotoRoute(currentRoute);
+  setStartObject(a);
   
   /*leds.enableObject(a);
   leds.enableObject(c);
@@ -137,7 +140,7 @@ void loop()  {
       
       pid.gotoPos(value,MOTOR_SPEED_UP);
       //pid.currentPos = value;
-      state = UP_STATE;
+      //state = UP_STATE;
     }  
   #endif
   
@@ -146,7 +149,7 @@ void loop()  {
   switch(state) {
     case DEFAULT_STATE: 
     
-      routeSelector.update();
+      startObjectSelector.update();
       pedal.update();
       
       
@@ -205,10 +208,28 @@ void loop()  {
       #endif
       //leds.enableObject(currentObject);
       
+       
+      for(int i=0;i<MAX_ROUTE_STEPS;i++) {
+        int object = routes[MAX_ROUTE_STEPS*currentRoute+i];
+        #ifdef DEBUG_POSITION_OBJECT_MAPPING
+          Serial.print(" object: "); 
+          Serial.print(object);
+        #endif
+        if(object == -1) {
+          #ifdef DEBUG_POSITION_OBJECT_MAPPING
+            Serial.println("");
+          #endif
+          continue;
+        }
+        float objectPosition = objectPositions[object];
+      }
+      
+      //TODO retrieve position of target step instead of pid.targetPos 
+      
       #ifdef DEBUG_FLOW
-        //Serial.print(pid.currentPos);
-        //Serial.print('/');
-        //Serial.println(pid.targetPos);
+        Serial.print(pid.currentPos);
+        Serial.print('/');
+        Serial.println(pid.targetPos);
       #endif
       
       if(fabs(pid.targetPos-pid.currentPos) < 0.01) { // pointer at target pos?
@@ -222,9 +243,9 @@ void loop()  {
       
       #ifdef DEBUG_FLOW
         //if(millis())
-        //Serial.print(pid.currentPos);
-        //Serial.print('/');
-        //Serial.println(pid.targetPos);
+        Serial.print(pid.currentPos);
+        Serial.print('/');
+        Serial.println(pid.targetPos);
       #endif
       
       if(fabs(0-pid.currentPos) < 0.01) { // pointer at bottom?
@@ -254,8 +275,15 @@ void gotoState(int newState) {
       
       break;
     case UP_STATE: 
+
+      pickRoute();
+      // TODO pick target step according to pedalPressedForce
       
-      // TODO choose random route ?  
+      #ifdef DEBUG_FLOW
+        Serial.print("selected route: "); 
+        Serial.println(currentRoute);
+      #endif
+      
       //routeStartObjects
       
       //float pointerPos = mapfloat(pedalPressedForce,0.0,1.0,pointerBottomPos,pointerTopPos);
@@ -302,8 +330,8 @@ void onPedalPressed(float force) {
   gotoState(UP_STATE);
 }
 
-void onRouteSelected(int route) {
-  gotoRoute(route);
+void onStartObjectSelected(int startObject) {
+  setStartObject(startObject);
 }
 
 void onAudioFinished() {
@@ -314,13 +342,67 @@ void onAudioFinished() {
   gotoStep(currentStep-1); 
 }
 
-void gotoRoute(int route) {
+void setStartObject(int startObject) {
   #ifdef DEBUG_FLOW
-    Serial.print("goto route: ");
-    Serial.println(route);
+    Serial.print("new startobject: ");
+    Serial.println(startObject);
   #endif
-  currentRoute = route;
-  leds.lightRouteSelection(currentRoute);
+  currentStartObject = startObject;
+  //currentRoute = route;
+  leds.lightStartObjectSelection(startObject);
+  
+  
+  #ifdef DEBUG_ROUTE_SELECTION
+    currentRoute = pickRoute();
+  #endif
+}
+int pickRoute() {
+  #ifdef DEBUG_ROUTE_SELECTION
+    Serial.println("pickRoute");
+    Serial.print("currentStartObject: ");
+    Serial.println(currentStartObject);
+  #endif
+  int numCompatibleRoutes = 0; // count routes that start with selected startObject
+  for(int i=0;i<NUM_ROUTES;i++) {
+    int routeStartObject = routes[MAX_ROUTE_STEPS*i];
+    #ifdef DEBUG_ROUTE_SELECTION
+      Serial.print(' ');
+      Serial.print(i);
+      Serial.print(' ');
+      Serial.print(routeStartObject);
+    #endif
+    if(routeStartObject == currentStartObject) {
+      numCompatibleRoutes++;
+      #ifdef DEBUG_ROUTE_SELECTION
+        Serial.print(" compatible route");  
+      #endif
+    }
+    #ifdef DEBUG_ROUTE_SELECTION
+      Serial.println(' ');
+    #endif
+  }
+  int randomRouteIndex = random(0,numCompatibleRoutes);
+  #ifdef DEBUG_ROUTE_SELECTION
+    Serial.print("numCompatibleRoutes: ");
+    Serial.println(numCompatibleRoutes);
+    Serial.print("randomRouteIndex: ");
+    Serial.println(randomRouteIndex);
+  #endif
+  int compatibleRouteIndex = 0; 
+  for(int i=0;i<NUM_ROUTES;i++) {
+    int routeStartObject = routes[MAX_ROUTE_STEPS*i];
+    if(routeStartObject == currentStartObject) {
+      if(compatibleRouteIndex == randomRouteIndex) {
+        currentRoute = i;   
+      }
+      compatibleRouteIndex++;
+    }
+  }
+  #ifdef DEBUG_ROUTE_SELECTION
+    Serial.print("picked route: "); 
+    Serial.println(currentRoute);
+  #endif
+  currentRoute;
 }
 
 void gotoStep(int newStep) {

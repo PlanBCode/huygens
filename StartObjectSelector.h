@@ -1,28 +1,28 @@
-class RouteSelector {
+class StartObjectSelector {
   
   private: 
     int* inputPins;
     int prev;
     
-    typedef void (*RouteSelectedHandler)(int route);
-    RouteSelectedHandler selectedHandler;
+    typedef void (*StartObjectSelectedHandler)(int startObject);
+    StartObjectSelectedHandler selectedHandler;
     
   public: 
     int current;
     
-    RouteSelector(int* _inputPins, 
-                  RouteSelectedHandler _selectedHandler) {
+    StartObjectSelector(int* _inputPins, 
+                  StartObjectSelectedHandler _selectedHandler) {
                     
       inputPins = _inputPins;
       selectedHandler = _selectedHandler;
-      for(int i=0;i<NUM_ROUTES;i++) {
+      for(int i=0;i<NUM_START_OBJECTS;i++) {
         pinMode(inputPins[i],INPUT);
         digitalWrite(inputPins[i],HIGH);
       }
     }
     
     void update() {
-      for(int i=0;i<NUM_ROUTES;i++) {
+      for(int i=0;i<NUM_START_OBJECTS;i++) {
         #ifdef DEBUG_ROUTE_SELECTOR
           Serial.print(digitalRead(inputPins[i]));
           Serial.print(' ');

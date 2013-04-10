@@ -8,7 +8,7 @@ class Leds{
   private: 
     int* objectLedsPins;
     int objectLedsState[NUM_LEDS];
-    int* routeChoiceLedsPins;  
+    int* startObjectLedsPins;  
     int numLedsEnabled;
 
     /*int digitalReadOutputPin(uint8_t pin)
@@ -23,10 +23,10 @@ class Leds{
 
   public: 
     
-    Leds(int* _objectLedsPins, int* _routeChoiceLedsPins) {
+    Leds(int* _objectLedsPins, int* _startObjectLedsPins) {
     //Leds(int _numRoutes, int _numRouteSteps) {
       objectLedsPins = _objectLedsPins;
-      routeChoiceLedsPins = _routeChoiceLedsPins;
+      startObjectLedsPins = _startObjectLedsPins;
       numLedsEnabled = 1;
       
       for(int i=0;i<NUM_LEDS;i++) {
@@ -36,8 +36,8 @@ class Leds{
         objectLedsState[i] = 0;
       }
       
-      for(int i=0;i<NUM_ROUTES;i++) {
-        pinMode(routeChoiceLedsPins[i],OUTPUT);
+      for(int i=0;i<NUM_START_OBJECTS;i++) {
+        pinMode(startObjectLedsPins[i],OUTPUT);
       }
       //Serial.println(numLedsEnabled);
     }
@@ -88,9 +88,9 @@ class Leds{
         //Serial.println(numLedsEnabled);
       #endif
     }
-    void lightRouteSelection(int route) {
-      for(int i=0;i<NUM_ROUTES;i++) {
-         digitalWrite(routeChoiceLedsPins[i],(i == route)? HIGH : LOW);
+    void lightStartObjectSelection(int startObject) {
+      for(int i=0;i<NUM_START_OBJECTS;i++) {
+         digitalWrite(startObjectLedsPins[i],(i == startObject)? HIGH : LOW);
       }
     }
     void update() {

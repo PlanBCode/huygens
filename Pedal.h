@@ -6,9 +6,9 @@ int __pedalInputBottomPin;
 
 volatile bool __pedalPressing;
 volatile bool __pedalPressed;
-volatile long int __pedalStartPressingTime;
-volatile long int __pedalEndPressingTime;
-volatile long int __pedalPressingTime;
+volatile long unsigned int __pedalStartPressingTime;
+volatile long unsigned int __pedalEndPressingTime;
+volatile long unsigned int __pedalPressingTime;
 volatile int __pedalMaxPressingTime;
 
 void pedalTopChanged() {
@@ -16,15 +16,17 @@ void pedalTopChanged() {
   if(digitalRead(__pedalInputTopPin) == HIGH) { // if left top
     __pedalStartPressingTime = millis();
     __pedalPressing = true;
-  } else if(__pedalPressing && !__pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
+  }
+  // TODO stops working after a while:
+  /* else if(__pedalPressing && !__pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
     //__pedalEndPressingTime = millis();
     //Serial.println(__pedalEndPressingTime-__pedalStartPressingTime);
-    //if(__pedalEndPressingTime-__pedalStartPressingTime > 30) { // debounce prevention
-      __pedalPressingTime = __pedalMaxPressingTime*0; //TEMP //*0.8;
+    if(millis()-__pedalStartPressingTime > 30) { // debounce prevention
+      __pedalPressingTime = __pedalMaxPressingTime*0.8;
       __pedalPressing = false;
       __pedalPressed = true;
-    //}
-  }
+    }
+  }*/
 }
 void pedalBottomChanged() {
   //Serial.println('b');
