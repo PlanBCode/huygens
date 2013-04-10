@@ -19,12 +19,12 @@
 //#define DEBUG_POSITION_OBJECT_MAPPING
 //#define DEBUG_ROUTE_SELECTION
 //#define DEBUG_AUDIO_PLAYER_SERIAL
-//#define DEBUG_LEDS 
+#define DEBUG_LEDS 
 //#define DEBUG_PID
 //#define DEBUG_PID_VERBOSE
 //#define DEBUG_PEDAL
 //#define DEBUG_PEDAL_VERBOSE
-//#define DEBUG_ROUTE_SELECTOR
+//#define DEBUG_START_OBJECT_SELECTOR
 //#define DISABLE_LEDS
 
 #include "arduino.h"
@@ -95,9 +95,6 @@ Leds leds(objectLedsPins, startObjectLedsPins);
 AudioPlayer audioPlayer(objectTracks, onAudioFinished);
 
 void setup() {
-  // set pin modes
-  
-  //enable pull-up resistors
   
   // motor
   digitalWrite(motorEnablePin,HIGH);
@@ -224,12 +221,12 @@ void loop()  {
         float objectPosition = objectPositions[object];
       }
       
-      //TODO retrieve position of target step instead of pid.targetPos 
-      
       #ifdef DEBUG_FLOW
-        Serial.print(pid.currentPos);
-        Serial.print('/');
-        Serial.println(pid.targetPos);
+        if(round(millis()/100)*100%500 == 0) {
+          Serial.print(pid.currentPos);
+          Serial.print('/');
+          Serial.println(pid.targetPos);
+        }
       #endif
       
       if(fabs(pid.targetPos-pid.currentPos) < 0.01) { // pointer at target pos?
@@ -243,9 +240,11 @@ void loop()  {
       
       #ifdef DEBUG_FLOW
         //if(millis())
-        Serial.print(pid.currentPos);
-        Serial.print('/');
-        Serial.println(pid.targetPos);
+        if(round(millis()/100)*100%500 == 0) {
+          Serial.print(pid.currentPos);
+          Serial.print('/');
+          Serial.println(0);
+        }
       #endif
       
       if(fabs(0-pid.currentPos) < 0.01) { // pointer at bottom?
@@ -267,7 +266,6 @@ void gotoState(int newState) {
   #endif
   state = newState;
   float pointerTargetPos;
-  
   switch(newState) {
     case DEFAULT_STATE: 
       pedal.reset(); // reset state of pedal (could have changed by interrupt
@@ -277,7 +275,6 @@ void gotoState(int newState) {
     case UP_STATE: 
 
       pickRoute();
-      // TODO pick target step according to pedalPressedForce
       
       #ifdef DEBUG_FLOW
         Serial.print("selected route: "); 
@@ -294,8 +291,7 @@ void gotoState(int newState) {
         Serial.println(pointerTargetPos);
       #endif
       break;
-    case NOTIFY_STATE: 
-      Serial.println("@ notify state");
+    case NOTIFY_STATE:
       delay(1000);
       
       leds.disableAllObjects();
@@ -304,7 +300,6 @@ void gotoState(int newState) {
       leds.enableObject(currentObject);
       
       delay(1000);
-      Serial.println("called DOWN_STATE");
       gotoState(DOWN_STATE);
       
       break;
@@ -356,7 +351,7 @@ void setStartObject(int startObject) {
     currentRoute = pickRoute();
   #endif
 }
-int pickRoute() {
+void pickRoute() {
   #ifdef DEBUG_ROUTE_SELECTION
     Serial.println("pickRoute");
     Serial.print("currentStartObject: ");
@@ -402,9 +397,7 @@ int pickRoute() {
     Serial.print("picked route: "); 
     Serial.println(currentRoute);
   #endif
-  currentRoute;
 }
-
 void gotoStep(int newStep) {
   #ifdef DEBUG_FLOW
     Serial.print("goto step: ");

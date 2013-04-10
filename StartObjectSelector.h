@@ -23,14 +23,14 @@ class StartObjectSelector {
     
     void update() {
       for(int i=0;i<NUM_START_OBJECTS;i++) {
-        #ifdef DEBUG_ROUTE_SELECTOR
+        #ifdef DEBUG_START_OBJECT_SELECTOR
           Serial.print(digitalRead(inputPins[i]));
           Serial.print(' ');
         #endif
         if(digitalRead(inputPins[i]) == LOW) 
           current = i;
       }
-      #ifdef DEBUG_ROUTE_SELECTOR
+      #ifdef DEBUG_START_OBJECT_SELECTOR
         Serial.println(' ');
       #endif
       if(current != prev) {
