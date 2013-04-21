@@ -372,7 +372,8 @@ void pickRoute() {
   #endif
   int numCompatibleRoutes = 0; // count routes that start with selected startObject
   for(int i=0;i<NUM_ROUTES;i++) {
-    int routeStartObject = routes[MAX_ROUTE_STEPS*i];
+    //int routeStartObject = routes[MAX_ROUTE_STEPS*i];
+    int routeStartObject = startObjectsPerRoute[i];
     #ifdef DEBUG_ROUTE_SELECTION
       Serial.print(' ');
       Serial.print(i);

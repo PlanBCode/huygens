@@ -37,30 +37,33 @@ enum objects {
   atoomklok,
   kwarts,
   grasshopper,
-  onrust,
   greenwich,
   theodoliet,
-  waterpas,
   marschannels,
   seti,
   drake,
   ureymiller,
   panspermia,
   micromegas,
-  kosmo,
   voyager,
   marswagen,
   telescoop,
-  huygensoculair,
   beamer,
   film,
   zoetrope,
   toverlantaarn,
+  
+  huygensoculair,
+  huygensoculair2,
+  onrust,
+  kosmo,
+  waterpas,
 };
 // led pins along routes to light objects (pins 30 - 53) 
 // add ALL leds pins to make sure they are pulled down when off!
 int objectLedsPins[]  = { 
-  52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,39
+  52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,39,
+  37, 37, 35, 33, 31
 }; 
 // positions of objects along routes. from 0 (bottom) to 1 (top)
 float objectPositions[] = { 
@@ -68,25 +71,27 @@ float objectPositions[] = {
   0.84,
   0.76,
   0.18,
-  0.00,
   0.64,
   0.36,
-  0.00,
   0.69,
   1.00,
   0.85,
   0.83,
   0.48,
   0.26,
-  0.00,
   0.90,
   1.00,
   0.96,
-  0.00,
   1.00,
   0.91,
   0.49,
   0.40,
+  
+  0.00,
+  0.00,
+  0.00,
+  0.00,
+  0.00,
 }; 
 // audio tracks per object along routes
 String objectTracks[]  = { 
@@ -94,25 +99,27 @@ String objectTracks[]  = {
   "02atoomklok.mp3",
   "03kwarts.mp3",
   "04grasshopper.mp3",
-  "05onrust.mp3",
   "06greenwich.mp3",
   "07theodoliet.mp3",
-  "08waterpas.mp3",
   "09marschannels.mp3",
   "10seti.mp3",
   "11drake.mp3",
   "12ureymiller.mp3",
   "13panspermia.mp3",
   "14micromegas.mp3",
-  "15kosmo.mp3",
   "16voyager.mp3",
   "17marswagen.mp3",
   "18telescoop.mp3",
-  "19huygensoculair.mp3",
   "20beamer.mp3",
   "21film.mp3",
   "22zoetrope.mp3",
   "23toverlantaarn.mp3",
+  
+  "19huygensoculair.mp3",
+  "24huygensoculair2.mp3",
+  "05onrust.mp3",
+  "15kosmo.mp3",
+  "08waterpas.mp3",
 }; 
 // actual routes. from start objects (bottom) to top
 // each line a route of a fixed number of objects (MAX_ROUTE_STEPS), use -1 for emtpty
@@ -122,7 +129,16 @@ int routes[] = {
   kosmo,           micromegas,    panspermia, ureymiller,  drake,    seti,         marschannels,
   kosmo,           micromegas,    panspermia, marswagen,   voyager,  marschannels, -1,
   huygensoculair,  telescoop,     marswagen,  voyager,     -1,       -1,           -1,
-  huygensoculair,  toverlantaarn, zoetrope,   film,        beamer,   -1,           -1
+  huygensoculair2,  toverlantaarn, zoetrope,   film,        beamer,   -1,           -1
+};
+// start objects per route (to link start object in closet to routes)
+int startObjectsPerRoute[] = {
+  onrust,
+  waterpas,
+  kosmo,
+  kosmo,
+  huygensoculair,
+  huygensoculair,
 };
 // start objects in the closet, from left to right
 int routeStartObjects[] = {huygensoculair,onrust,kosmo,waterpas}; 
