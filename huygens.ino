@@ -1,9 +1,8 @@
-#define NUM_START_OBJECTS 4
-#define NUM_ROUTES 6
-#define MAX_ROUTE_STEPS 6
-#define NUM_OBJECTS 5
-#define MOTOR_SPEED_DOWN 0.75
-#define MOTOR_SPEED_UP 1
+#include "Arduino.h"
+#include "content.h"
+
+#define MOTOR_SPEED_DOWN 0.25 //0.75
+#define MOTOR_SPEED_UP 1 // 1
 #define NUM_LEDS 20
 #define MAX_ENABLED_LEDS 5      // limit number of simultaneous LEDs on to avoid powersupply overload
 
@@ -15,57 +14,36 @@
 
 #define DEBUG
 #define DEBUG_FLOW
-//#define DEBUG_SERIAL
+#define DEBUG_SERIAL
+#define DEBUG_CONTENT
 //#define DEBUG_POSITION_OBJECT_MAPPING
 //#define DEBUG_ROUTE_SELECTION
 //#define DEBUG_AUDIO_PLAYER_SERIAL
-#define DEBUG_LEDS 
+//#define DEBUG_LEDS 
 //#define DEBUG_PID
-//#define DEBUG_PID_VERBOSE
+#define DEBUG_PID_VERBOSE
 //#define DEBUG_PEDAL
 //#define DEBUG_PEDAL_VERBOSE
 //#define DEBUG_START_OBJECT_SELECTOR
 //#define DISABLE_LEDS
 
-#include "Arduino.h"
+#include "TimerThree.h"
 #include "Pedal.h"
 #include "AudioPlayer.h"
 #include "PID.h"
 #include "StartObjectSelector.h"
 #include "Leds.h"
 
-enum objects { a, b, c, d, e };
-// led pins along routes to light objects (pins 30 - 53) 
-// add ALL leds pins to make sure they are pulled down when off!
-int objectLedsPins[]  = { 
-  52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,39
-  //38,36,34,32,30,53,51,49,47,45,43,41,39,  52,50,48,46,44,42,40,
-}; 
-float objectPositions[] = { 
-  0.2,  0.3,  0.5,  0.75,  1
-}; 
-String objectTracks[]  = { 
-  "1.MP3",  "2.MP3",  "3.MP3",  "4.MP3",  "5.MP3", "5.MP3"
-}; // tracks per object along routes
-int routes[] = {
-  a, b, c,  d,  e, -1,
-  a, c, e, -1, -1, -1,
-  b, c, d, -1, -1, -1,
-  b, d, e, -1, -1, -1,
-  c, d, e,  a, -1, -1,
-  d, e, a, -1, -1, -1
-};
-int routeStartObjects[] = {a,b,c,d}; // objects in closed that people select
 
-float pointerTopPos      = 475; //0.43; //0.45; //0.47 // (unmapped)
-float pointerBottomPos   = 137; //0.15; //0.17; //0.17; //0.13 // (unmapped)
+float pointerTopPos      = 423; //475; //0.43; //0.45; //0.47 // (unmapped)
+float pointerBottomPos   = 67; //137; //0.15; //0.17; //0.17; //0.13 // (unmapped)
 float motorMaxFB         = 500; //(525mV per Amp) 525*5/5000*1024
 int state                = DEFAULT_STATE;
-int currentStartObject   = a;
 int currentRoute         = 0;
 int currentStep          = -1; // starts at -1 for not at first step yet
 int currentObject        = -1;
 int pedalPressedForce    = -1;
+float pointerTargetPos   = 0;
 
 ////////////// PINS //////////////
 // motor pins
@@ -77,7 +55,8 @@ int motorEnablePin       = 10;
 int motorSlewPin         = 9;
 int motorInversePin      = 8;
 // startObjects pins
-int startObjectInputPins[] = {2,7,5,3}; // input of start object selection slider
+//int startObjectInputPins[] = {2,7,5,3}; // input of start object selection slider
+int startObjectInputPins[] = {1,6,4,2}; // input of start object selection slider
 int startObjectLedsPins[]  = {37,35,33,31}; // led pins lightning start object choice in closet (pins 30 - 53)
 // pedal pins
 int pedalInputTopPin     = 21; //2;
@@ -105,6 +84,11 @@ void setup() {
   TCCR1B=(TCCR1B & 0xF8) | 0x01; //change PWM frequency (disabling noise)
   pid.gotoPos(0.5,MOTOR_SPEED_DOWN);
   
+  pinMode(3, OUTPUT);
+  Timer3.initialize(10000); // initialize timer, and set a 10000 millisecond period
+  Timer3.pwm(3, 512); // setup pwm on pin 3 (nterrupt 1), 50% duty cycle
+  Timer3.attachInterrupt(booboo);  // attaches callback() as a timer overflow interrupt
+        
   #ifdef DEBUG 
     Serial.begin(9600);
     Serial.println("");
@@ -116,7 +100,19 @@ void setup() {
   //state = UP_STATE;
   //audioPlayer.playObject(a);
   
-  setStartObject(a);
+  #ifdef DEBUG_CONTENT
+    for(int i = 0;i<NUM_OBJECTS;i++) {
+      Serial.print(i);
+      Serial.print('\t');
+      Serial.print(objectPositions[i]);
+      Serial.print('\t');
+      Serial.print(objectLedsPins[i]);
+      Serial.print('\t');
+      Serial.println(objectTracks[i]);
+    }
+    Serial.println("");
+  #endif
+  setStartObject(currentStartObject);
   
   /*leds.enableObject(a);
   leds.enableObject(c);
@@ -125,6 +121,10 @@ void setup() {
   leds.disableObject(b);
   leds.disableAllObjects();
   leds.enableObject(c);*/
+}
+
+void booboo() {
+  pid.update();
 }
 
 void loop()  { 
@@ -222,7 +222,7 @@ void loop()  {
       }
       
       #ifdef DEBUG_FLOW
-        if(round(millis()/100)*100%500 == 0) {
+        if(round(millis()/20)*20%500 == 0) {
           Serial.print(pid.currentPos);
           Serial.print('/');
           Serial.println(pid.targetPos);
@@ -240,7 +240,7 @@ void loop()  {
       
       #ifdef DEBUG_FLOW
         //if(millis())
-        if(round(millis()/100)*100%500 == 0) {
+        if(round(millis()/20)*20%500 == 0) {
           Serial.print(pid.currentPos);
           Serial.print('/');
           Serial.println(0);
@@ -253,7 +253,7 @@ void loop()  {
       
       break;
   }
-  pid.update();
+//  pid.update();
   audioPlayer.update();
   
   //delay(500);
@@ -265,7 +265,7 @@ void gotoState(int newState) {
     Serial.println(newState);
   #endif
   state = newState;
-  float pointerTargetPos;
+  
   switch(newState) {
     case DEFAULT_STATE: 
       pedal.reset(); // reset state of pedal (could have changed by interrupt
@@ -283,8 +283,10 @@ void gotoState(int newState) {
       
       //routeStartObjects
       
-      //float pointerPos = mapfloat(pedalPressedForce,0.0,1.0,pointerBottomPos,pointerTopPos);
-      pointerTargetPos = pedalPressedForce;
+//      float pointerPos = mapfloat(pedalPressedForce,0.0,1.0,pointerBottomPos,pointerTopPos);
+      //pointerTargetPos = min(0.25 + 0.83*pedalPressedForce, 1.0);
+      
+//      pointerTargetPos = pedalPressedForce;
       pid.gotoPos(pointerTargetPos,MOTOR_SPEED_UP);
       #ifdef DEBUG_FLOW
         Serial.print(" > ");
@@ -315,14 +317,24 @@ void gotoState(int newState) {
 
 void onPedalPressed(float force) {
   if(state != DEFAULT_STATE) return;
+  
   #ifdef DEBUG_FLOW
     Serial.print("pedal pressed: ");
-    Serial.println(force);
+    Serial.print(force);
   #endif
   
   pedalPressedForce = force;
   
-  gotoState(UP_STATE);
+  pointerTargetPos = min(0.35 + 0.75*force, 1.0);
+  
+  #ifdef DEBUG_FLOW
+    Serial.print(" > ");
+    Serial.println(pointerTargetPos);
+  #endif
+  
+  #ifndef DEBUG_FLOW
+    gotoState(UP_STATE);
+  #endif
 }
 
 void onStartObjectSelected(int startObject) {
@@ -351,6 +363,7 @@ void setStartObject(int startObject) {
     currentRoute = pickRoute();
   #endif
 }
+
 void pickRoute() {
   #ifdef DEBUG_ROUTE_SELECTION
     Serial.println("pickRoute");
@@ -398,6 +411,7 @@ void pickRoute() {
     Serial.println(currentRoute);
   #endif
 }
+
 void gotoStep(int newStep) {
   #ifdef DEBUG_FLOW
     Serial.print("goto step: ");

@@ -1,4 +1,5 @@
-
+#define PEDAL_DEBOUNCE_TIME 10
+#define PEDAL_MAX_PRESSING_TIME 700
 
 // pins
 int __pedalInputTopPin;
@@ -6,33 +7,41 @@ int __pedalInputBottomPin;
 
 volatile bool __pedalPressing;
 volatile bool __pedalPressed;
+
 volatile long unsigned int __pedalStartPressingTime;
 volatile long unsigned int __pedalEndPressingTime;
 volatile long unsigned int __pedalPressingTime;
-volatile int __pedalMaxPressingTime;
+
+// debounce
+volatile long unsigned int __pedalTopChangedTime;
+volatile boolean __pedalTopPrevState;
 
 void pedalTopChanged() {
   //Serial.println('t');
-  if(digitalRead(__pedalInputTopPin) == HIGH) { // if left top
-    __pedalStartPressingTime = millis();
-    __pedalPressing = true;
+  if(millis()-__pedalTopChangedTime > PEDAL_DEBOUNCE_TIME) {// debounce prevention
+    boolean pedalTopState = digitalRead(__pedalInputTopPin);
+    if(pedalTopState != __pedalTopPrevState) {
+      if(pedalTopState == HIGH) { // if left top (for actual pedal change to HIGH
+        //Serial.println('t');
+        __pedalStartPressingTime = millis();
+        __pedalPressing = true;
+      } else if(__pedalPressing && !__pedalPressed){ //if(__pedalPressing && !__pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
+        //Serial.println("t2");
+        __pedalPressingTime = PEDAL_MAX_PRESSING_TIME*0.8;
+        __pedalPressing = false;
+        __pedalPressed = true;
+      }
+      __pedalTopPrevState = pedalTopState;
+      __pedalTopChangedTime = millis();
+    } 
   }
-  // TODO stops working after a while:
-  /* else if(__pedalPressing && !__pedalPressed){ // if it reaches the top again and the pedal wasn't fully pressed down
-    //__pedalEndPressingTime = millis();
-    //Serial.println(__pedalEndPressingTime-__pedalStartPressingTime);
-    if(millis()-__pedalStartPressingTime > 30) { // debounce prevention
-      __pedalPressingTime = __pedalMaxPressingTime*0.8;
-      __pedalPressing = false;
-      __pedalPressed = true;
-    }
-  }*/
 }
 void pedalBottomChanged() {
-  //Serial.println('b');
+  //Serial.print('b');
   if(__pedalPressing && digitalRead(__pedalInputBottomPin) == LOW) { // if reached bottom
-    int pedalEndPressingTime = millis();
-    __pedalPressingTime = pedalEndPressingTime-__pedalStartPressingTime;
+    //Serial.println('b');
+    __pedalEndPressingTime = millis();
+    __pedalPressingTime = __pedalEndPressingTime-__pedalStartPressingTime;
     __pedalPressing = false;
     __pedalPressed = true;
   }
@@ -61,7 +70,9 @@ class Pedal {
       __pedalStartPressingTime = 0;
       __pedalPressingTime = 0;
       
-      __pedalMaxPressingTime = 700; //700
+      __pedalTopChangedTime = 0;
+      __pedalTopPrevState = HIGH;
+      
       pressingTime = 0;
       force = 0;
       
@@ -85,24 +96,24 @@ class Pedal {
         Serial.println(digitalRead(__pedalInputBottomPin));
       #endif
       
-      if(__pedalPressed && __pedalPressingTime <= __pedalMaxPressingTime) {
+      if(__pedalPressed && __pedalPressingTime <= PEDAL_MAX_PRESSING_TIME) {
         pressingTime = __pedalPressingTime;
-        force = float(__pedalMaxPressingTime-pressingTime)/__pedalMaxPressingTime;
+        force = float(PEDAL_MAX_PRESSING_TIME-pressingTime)/PEDAL_MAX_PRESSING_TIME;
         force = min(max(force,0),1);
         __pedalPressed = false;
-        pressedHandler(force);
         
         #ifdef DEBUG_PEDAL
           Serial.print(pressingTime);
           Serial.print('/');
-          Serial.print(__pedalMaxPressingTime);
+          Serial.print(PEDAL_MAX_PRESSING_TIME);
           Serial.print(" > ");
           Serial.println(force);
         #endif
+        
+        pressedHandler(force);
       }
       //delay(500);
     }
-    
 };
 
 

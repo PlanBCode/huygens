@@ -27,7 +27,7 @@ class Leds{
     //Leds(int _numRoutes, int _numRouteSteps) {
       objectLedsPins = _objectLedsPins;
       startObjectLedsPins = _startObjectLedsPins;
-      numLedsEnabled = 1;
+      numLedsEnabled = 1; //starting at 1 for start object selection led
       
       for(int i=0;i<NUM_LEDS;i++) {
         int ledPin = objectLedsPins[i];

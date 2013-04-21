@@ -1,7 +1,7 @@
 #define damping 0.5
 #define SPEED_DAMPING 0.25
-//#define acceleration 20.0
-#define speedLimitedDistance 0.25//0.10
+#define acceleration 1.1
+#define speedLimitedDistance 0.15 //0.25//0.10
 //#define minSpeed 0.30
 
 class PID {
@@ -23,7 +23,8 @@ class PID {
     float targetSpeed;
     //float currentPos;
     float oldSpeed;
-
+    
+    float motorVoltage;
     //int direction;
     int maxFB;
     
@@ -95,29 +96,45 @@ class PID {
     }*/
     void update() {
       
-      //currentPos = analogRead(resolverPin)/1024.0;
       currentPos = analogRead(resolverPin);
-      //#ifdef DEBUG_PID_VERBOSE
-        //Serial.print(currentPos);
-      //#endif
       float range = maxPos-minPos;
       currentPos = (currentPos-minPos)/range;
-      //currentPos = max(min(currentPos,1),0);
-      //#ifdef DEBUG_PID_VERBOSE
-        //Serial.print('>');
-        //Serial.println(currentPos);
-      //#endif
-      
-      
-      currentPos = (1-damping)*currentPos + damping*oldPos;
+//      currentPos = (1-damping)*currentPos + damping*oldPos;
       
       float distance = fabs(currentPos - targetPos);
-      //float olddistance = fabs(oldPos - targetPos);
+      float olddistance = fabs(oldPos - targetPos);
+      float currentSpeed = distance - olddistance;
       
       int direction = (currentPos < targetPos)? 1 : 0;
-      //if (distance > olddistance) direction = !direction;
       
-      #ifdef DEBUG_PID_VERBOSE
+      // if drawing too much power, limit motor voltage
+      if(analogRead(fbPin) > maxFB) {
+        motorVoltage = motorVoltage/acceleration;
+      }
+      // if position is right, don't fix it
+      else if (distance < 0.05) {
+        motorVoltage = 0.0;
+      }
+      // if moving, limit motor voltage (relating to frictionless motor speed) when getting near to target
+      else if (currentSpeed > 0.0 && distance < speedLimitedDistance) {
+        motorVoltage = motorVoltage * (1.0 - currentSpeed / distance);
+      }
+      // accelerate or deccelerate towards target speed
+      else {
+        motorVoltage = motorVoltage * (currentSpeed < targetSpeed ? acceleration : 1.0/acceleration);
+        motorVoltage = min(max(motorVoltage, 0.05), 1.0);
+      }
+      
+      int motorPWM = (int)round(255*motorVoltage);
+      
+      digitalWrite(directionPin, direction? HIGH : LOW);
+      analogWrite(speedPin, motorPWM);
+     
+      oldPos = currentPos;
+
+
+/*
+     #ifdef DEBUG_PID_VERBOSE
         Serial.print(analogRead(resolverPin));
         Serial.print('>');
         Serial.print(currentPos);
@@ -128,9 +145,17 @@ class PID {
         Serial.print('\t');
         Serial.print(direction);
         Serial.print('\t');
+        Serial.print(motorVoltage);
+        Serial.print('\t');
+        Serial.print(motorPWM);
+        Serial.println();
       #endif
-      
+*/      
+
+
+/*
       float newSpeed;
+      
       if(distance < speedLimitedDistance) {
 //      newSpeed = minSpeed + (1.0 - minSpeed) * targetSpeed * (distance/speedLimitedDistance);
         newSpeed = sqrt(targetSpeed * (distance/speedLimitedDistance));
@@ -152,7 +177,6 @@ class PID {
       
       newSpeed = (1-SPEED_DAMPING)*newSpeed + SPEED_DAMPING*oldSpeed;
       
-      
       #ifdef DEBUG_PID_VERBOSE
         Serial.print(newSpeed);
         Serial.print('>');
@@ -171,5 +195,6 @@ class PID {
       //digitalWrite(enablePin, (distance <= 0.02)? LOW: HIGH); 
       oldSpeed = newSpeed;
       oldPos = currentPos;
+      */
     }
 };
