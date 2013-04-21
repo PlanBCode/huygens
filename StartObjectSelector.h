@@ -4,7 +4,7 @@ class StartObjectSelector {
     int* inputPins;
     int prev;
     
-    typedef void (*StartObjectSelectedHandler)(int startObject);
+    typedef void (*StartObjectSelectedHandler)(int startObjectPos);
     StartObjectSelectedHandler selectedHandler;
     
   public: 

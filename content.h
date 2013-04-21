@@ -1,6 +1,6 @@
 /*#define NUM_START_OBJECTS 4
 #define NUM_ROUTES 6
-#define MAX_ROUTE_STEPS 7
+#define MAX_ROUTE_STEPS 6
 #define NUM_OBJECTS 5
 enum objects { a, b, c, d, e };
 // led pins along routes to light objects (pins 30 - 53) 
@@ -29,8 +29,8 @@ int currentStartObject   = a;
 
 #define NUM_START_OBJECTS 4
 #define NUM_ROUTES 6
-#define MAX_ROUTE_STEPS 6
-#define NUM_OBJECTS 23
+#define MAX_ROUTE_STEPS 7
+#define NUM_OBJECTS 24
 
 enum objects {
   gps,
@@ -59,11 +59,44 @@ enum objects {
   kosmo,
   waterpas,
 };
+
+String objectNames[] = {
+  "gps / tomtom",
+  "atoomklok",
+  "kwarts / wekker",
+  "grasshopper / escapement",
+  "greenwich / mediaan",
+  "theodoliet",
+  "marschannels",
+  "seti",
+  "drake / formule",
+  "ureymiller",
+  "panspermia / meteoriet",
+  "micromegas",
+  "voyager",
+  "marswagen",
+  "telescoop",
+  "beamer",
+  "film",
+  "zoetrope",
+  "toverlantaarn",
+  
+  "huygensoculair",
+  "huygensoculair2",
+  "onrust",
+  "kosmo",
+  "waterpas",
+}
+
+//int routeStartObjects[] = {huygensoculair,onrust,kosmo,waterpas}; 
+
+
 // led pins along routes to light objects (pins 30 - 53) 
 // add ALL leds pins to make sure they are pulled down when off!
 int objectLedsPins[]  = { 
-  52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,39,
-  37, 37, 35, 33, 31
+  52,50,48,46,44,42,40,38,36,34,32,30,53,51,49,47,45,43,41,
+  37, 37, 35, 33, 31, 
+  39
 }; 
 // positions of objects along routes. from 0 (bottom) to 1 (top)
 float objectPositions[] = { 
@@ -76,12 +109,12 @@ float objectPositions[] = {
   0.69,
   1.00,
   0.85,
-  0.83,
-  0.48,
+  0.80, //0.83, (making sure you see it before the drake formula)
+  0.45, //0.48 (meteoriet)
   0.26,
   0.90,
   1.00,
-  0.96,
+  0.49,
   1.00,
   0.91,
   0.49,
@@ -95,41 +128,41 @@ float objectPositions[] = {
 }; 
 // audio tracks per object along routes
 String objectTracks[]  = { 
-  "01gps.mp3",
-  "02atoomklok.mp3",
-  "03kwarts.mp3",
-  "04grasshopper.mp3",
-  "06greenwich.mp3",
-  "07theodoliet.mp3",
-  "09marschannels.mp3",
-  "10seti.mp3",
-  "11drake.mp3",
-  "12ureymiller.mp3",
-  "13panspermia.mp3",
-  "14micromegas.mp3",
-  "16voyager.mp3",
-  "17marswagen.mp3",
-  "18telescoop.mp3",
-  "20beamer.mp3",
-  "21film.mp3",
-  "22zoetrope.mp3",
-  "23toverlantaarn.mp3",
+  "001.mp3",
+  "002.mp3",
+  "003.mp3",
+  "004.mp3",
+  "006.mp3",
+  "007.mp3",
+  "017.mp3",
+  "010.mp3",
+  "011.mp3",
+  "012.mp3",
+  "013.mp3",
+  "014.mp3",
+  "016.mp3",
+  "009.mp3",
+  "018.mp3",
+  "020.mp3",
+  "021.mp3",
+  "022.mp3",
+  "023.mp3",
   
-  "19huygensoculair.mp3",
-  "24huygensoculair2.mp3",
-  "05onrust.mp3",
-  "15kosmo.mp3",
-  "08waterpas.mp3",
+  "019.mp3",
+  "024.mp3",
+  "005.mp3",
+  "015.mp3",
+  "008.mp3",
 }; 
 // actual routes. from start objects (bottom) to top
 // each line a route of a fixed number of objects (MAX_ROUTE_STEPS), use -1 for emtpty
 int routes[] = {
-  onrust,          grasshopper,   kwarts,     atoomklok,   gps,      -1,           -1,
-  waterpas,        theodoliet,    greenwich,  gps,         -1,       -1,           -1, 
-  kosmo,           micromegas,    panspermia, ureymiller,  drake,    seti,         marschannels,
-  kosmo,           micromegas,    panspermia, marswagen,   voyager,  marschannels, -1,
-  huygensoculair,  telescoop,     marswagen,  voyager,     -1,       -1,           -1,
-  huygensoculair2,  toverlantaarn, zoetrope,   film,        beamer,   -1,           -1
+  onrust,          grasshopper,   kwarts,     atoomklok,   gps,      -1,           -1, //
+  waterpas,        theodoliet,    greenwich,  gps,         -1,       -1,           -1, //
+  kosmo,           micromegas,    panspermia, ureymiller,  drake,    marswagen,    seti,
+  kosmo,           micromegas,    panspermia, marschannels,voyager,  marswagen,    -1, //
+  huygensoculair,  telescoop,     voyager,    marswagen,   -1,       -1,           -1, //
+  huygensoculair2, toverlantaarn, zoetrope,   film,        beamer,   -1,           -1 //
 };
 // start objects per route (to link start object in closet to routes)
 int startObjectsPerRoute[] = {

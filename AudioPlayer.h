@@ -26,8 +26,11 @@ class AudioPlayer {
     }
     void playObject(int object) {
       String track = objectTracks[object];
-      Serial.print("  play: ");
-      Serial.println(track);
+      
+      #ifdef DEBUG_AUDIO_PLAYER
+        Serial.print("  play: ");
+        Serial.println(track);
+      #endif
       
       //Serial1.print("VPF ");
       //Serial1.print(track);

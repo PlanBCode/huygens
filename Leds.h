@@ -8,7 +8,6 @@ class Leds{
   private: 
     int* objectLedsPins;
     int objectLedsState[NUM_LEDS];
-    int* startObjectLedsPins;  
     int numLedsEnabled;
 
     /*int digitalReadOutputPin(uint8_t pin)
@@ -23,21 +22,16 @@ class Leds{
 
   public: 
     
-    Leds(int* _objectLedsPins, int* _startObjectLedsPins) {
+    Leds(int* _objectLedsPins) {
     //Leds(int _numRoutes, int _numRouteSteps) {
       objectLedsPins = _objectLedsPins;
-      startObjectLedsPins = _startObjectLedsPins;
-      numLedsEnabled = 1; //starting at 1 for start object selection led
+      numLedsEnabled = 0; //starting at 1 for start object selection led
       
       for(int i=0;i<NUM_LEDS;i++) {
         int ledPin = objectLedsPins[i];
         pinMode(ledPin, OUTPUT);
         digitalWrite(ledPin,LOW);
         objectLedsState[i] = 0;
-      }
-      
-      for(int i=0;i<NUM_START_OBJECTS;i++) {
-        pinMode(startObjectLedsPins[i],OUTPUT);
       }
       //Serial.println(numLedsEnabled);
     }
@@ -88,11 +82,12 @@ class Leds{
         //Serial.println(numLedsEnabled);
       #endif
     }
-    void lightStartObjectSelection(int startObject) {
+    /*void lightStartObjectSelection(int selectedStartObject) {
       for(int i=0;i<NUM_START_OBJECTS;i++) {
-         digitalWrite(startObjectLedsPins[i],(i == startObject)? HIGH : LOW);
+        //int startObject = objectLedsPins[]
+        digitalWrite(startObjectLedsPins[i],(i == selectedStartObject)? HIGH : LOW);
       }
-    }
+    }*/
     void update() {
       
     }
