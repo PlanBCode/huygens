@@ -86,7 +86,7 @@ String objectNames[] = {
   "onrust",
   "kosmo",
   "waterpas",
-}
+};
 
 //int routeStartObjects[] = {huygensoculair,onrust,kosmo,waterpas}; 
 

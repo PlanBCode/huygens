@@ -107,6 +107,8 @@ void setup() {
     for(int i = 0;i<NUM_OBJECTS;i++) {
       Serial.print(i);
       Serial.print('\t');
+      Serial.print(objectNames[i]);
+      Serial.print('\t');
       Serial.print(objectPositions[i]);
       Serial.print('\t');
       Serial.print(objectLedsPins[i]);
@@ -115,13 +117,13 @@ void setup() {
     }
     Serial.println("");
     for(int i = 0;i<NUM_START_OBJECTS;i++) {
-      Serial.print(i);
-      Serial.print('\t');
       Serial.print(routeStartObjects[i]);
+      Serial.print('\t');
+      Serial.print(objectNames(routeStartObjects[i]));
       Serial.print('\t');
       Serial.println(objectLedsPins[routeStartObjects[i]]);
     }
-    
+    Serial.println("");
   #endif
   setStartObject(currentStartObject);
   
@@ -388,7 +390,9 @@ void setStartObject(int newStartObject) {
   #ifdef DEBUG_FLOW
     Serial.println("");
     Serial.print("new startobject: ");
-    Serial.println(newStartObject);
+    Serial.print(newStartObject);
+    Serial.print(' ');
+    Serial.println(objectNames[newStartObject]);
   #endif
   currentStartObject = newStartObject;
   //currentRoute = route;
