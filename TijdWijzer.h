@@ -8,14 +8,14 @@
  * use pragma DEBUG_PID_VERBOSE for additional debug feedback
  */
 
-#define Kp 4000
-#define Ki 0
-#define Kd 300
-#define Vmin 100
+#define Kp 4000 // 2000 // 4000   //Determines how aggressively the PID reacts to the current amount of error (Proportional) (double >=0)
+#define Ki 100 // 50 //150//110 //100// 0               // Determines how aggressively the PID reacts to error over time (Integral) (double>=0)
+#define Kd 500 //200// 500 //300             // Determines how aggressively the PID reacts to the change in error (Derivative) (double>=0)
+#define Vmin 100 //120 //115 //120 //100
 #define Vmax 200
 #define Imax 500 // 525mV per Amp (max power supply 5V*0.525* 5.0/1024 = 537)
 #define cycletime 5 // ms between PID computations
-#define resolverPrecision 0.05
+#define resolverPrecision 0.05//0.05
 
 class Tijdwijzer {
   private:

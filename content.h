@@ -100,25 +100,25 @@ int objectLedsPins[]  = {
 }; 
 // positions of objects along routes. from 0 (bottom) to 1 (top)
 float objectPositions[] = { 
-  1.00,
-  0.84,
-  0.76,
-  0.18,
-  0.64,
-  0.36,
-  0.69,
-  1.00,
-  0.85,
-  0.80, //0.83, (making sure you see it before the drake formula)
-  0.45, //0.48 (meteoriet)
-  0.26,
-  0.90,
-  1.00,
-  0.49,
-  1.00,
-  0.91,
-  0.49,
-  0.40,
+  1.00, // gps / tom tom
+  0.84, // atoomklok
+  0.76, // kwarts / wekker
+  0.26, //0.18, grasshopper / escapement 
+  0.70, //0.64, 
+  0.40, //0.36, // theoliet
+  0.65, //0.69, // marschannels / mars globe
+  1.00, // seti
+  0.85, // drake / formule
+  0.80, //0.83, ureymiller
+  0.40, //0.48 (meteoriet)
+  0.26, // micromegas
+  0.90, // voyager
+  1.00, // marswagen
+  0.51, // telescoop
+  1.00, // beamer
+  0.91, // film rol
+  0.57, //0.49, // zoetrope
+  0.36, //0.40, // toverlantaarn
   
   0.00,
   0.00,
@@ -159,10 +159,10 @@ String objectTracks[]  = {
 int routes[] = {
   onrust,          grasshopper,   kwarts,     atoomklok,   gps,      -1,           -1, //
   waterpas,        theodoliet,    greenwich,  gps,         -1,       -1,           -1, //
-  kosmo,           micromegas,    panspermia, ureymiller,  drake,    marswagen,    seti,
+  kosmo,           micromegas,    panspermia, ureymiller,  drake,    marswagen,    seti,//
   kosmo,           micromegas,    panspermia, marschannels,voyager,  marswagen,    -1, //
   huygensoculair,  telescoop,     voyager,    marswagen,   -1,       -1,           -1, //
-  huygensoculair2, toverlantaarn, zoetrope,   film,        beamer,   -1,           -1 //
+  huygensoculair2, toverlantaarn, zoetrope,   film,        beamer,   -1,           -1 // 
 };
 // start objects per route (to link start object in closet to routes)
 int startObjectsPerRoute[] = {

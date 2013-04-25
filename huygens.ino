@@ -13,14 +13,14 @@
 #define NOTIFY_STATE   2
 #define DOWN_STATE     3
 
-#define DEBUG
-#define DEBUG_FLOW
-#define DEBUG_SERIAL
-#define DEBUG_ALWAYS_TO_TOP // always send the Tijdwijzer to the top when the pedal is pressed
+//#define DEBUG
+//#define DEBUG_FLOW
+//#define DEBUG_SERIAL
+//#define DEBUG_ALWAYS_TO_TOP 
 //#define DEBUG_CONTENT
 //#define DEBUG_POSITION_OBJECT_MAPPING
 //#define DEBUG_ROUTE_SELECTION
-#define DEBUG_AUDIO_PLAYER
+//#define DEBUG_AUDIO_PLAYER
 //#define DEBUG_AUDIO_PLAYER_SERIAL
 //#define DEBUG_LEDS 
 //#define DEBUG_PID
@@ -29,6 +29,9 @@
 //#define DEBUG_PEDAL_VERBOSE
 //#define DEBUG_START_OBJECT_SELECTOR
 //#define DISABLE_LEDS
+//#define OVERRULE_ROUTE 2 // overrule selected route 
+//#define OVERRULE_TARGET_POS 0.90 // overrule the position of the TijdWijzer when the pedal is pressed
+//#define OVERRULE_AUDIO_DURATION 5000 // limit audio duration (time per route step) for quick testing
 
 //#include "TimerThree.h"
 #include "Pedal.h"
@@ -270,7 +273,7 @@ void loop()  {
         if(millis()-prevPosPrintTime > posPrintInterval && prevPrintedPos != tijdWijzer.getPosition()) {
           Serial.print(tijdWijzer.getPosition());
           Serial.print('/');
-          Serial.println(0);
+          Serial.println(tijdWijzer.getTargetPosition());
           prevPosPrintTime = millis();
           prevPrintedPos = tijdWijzer.getPosition();
         }
@@ -358,6 +361,10 @@ void onPedalPressed(float force) {
   pedalPressedForce = force;
   
   pointerTargetPos = min(0.35 + 0.75*force, 1.0);
+  
+  #ifdef OVERRULE_TARGET_POS
+    pointerTargetPos = OVERRULE_TARGET_POS;
+  #endif
   
   #ifdef DEBUG_ALWAYS_TO_TOP
     pointerTargetPos = 1;
@@ -456,7 +463,10 @@ void pickRoute() {
       compatibleRouteIndex++;
     }
   }
-  //currentRoute = 2;
+  
+  #ifdef OVERRULE_ROUTE
+    currentRoute = OVERRULE_ROUTE;
+  #endif
   
   #ifdef DEBUG_ROUTE_SELECTION
     Serial.print("picked route: "); 

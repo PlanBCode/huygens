@@ -5,6 +5,9 @@ class AudioPlayer {
     bool newMessage; 
     char messageType;
 
+    long unsigned int startTime;
+    boolean playing;
+    
     typedef void (*AudioFinishedHandler)();
     AudioFinishedHandler audioFinishedHandler;
 
@@ -20,9 +23,11 @@ class AudioPlayer {
       objectTracks = _objectTracks;
       audioFinishedHandler = _audioFinishedHandler;
       newMessage = true;
+      startTime = 0;
+      playing = false;
       Serial1.begin(9600);
       
-      //sendCommand("VRA");
+      sendCommand("VST"); //stops playback
     }
     void playObject(int object) {
       String track = objectTracks[object];
@@ -40,8 +45,24 @@ class AudioPlayer {
       
       sendCommand("VPF ",false);
       sendCommand(track);
+      
+      #ifdef OVERRULE_AUDIO_DURATION
+        startTime = millis();
+        playing = true;
+      #endif
     }
     void update() {
+      
+      #ifdef OVERRULE_AUDIO_DURATION
+        if(playing) {
+          if(millis()-startTime > OVERRULE_AUDIO_DURATION) {
+            playing = false;
+            //sendCommand("VST"); //stops playback
+            audioFinishedHandler();
+          }
+        }
+      #endif
+      
       while (Serial1.available() > 0) {
         byte b = Serial1.read();
         if(b == 13) {
@@ -59,6 +80,7 @@ class AudioPlayer {
             messageType = c;
             if(messageType == 'S') { // Stopped
               audioFinishedHandler();
+              playing = false;
             }
           }
           #ifdef DEBUG_AUDIO_PLAYER_SERIAL 

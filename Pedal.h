@@ -17,8 +17,9 @@ volatile long unsigned int __pedalTopChangedTime;
 volatile boolean __pedalTopPrevState;
 
 void pedalTopChanged() {
-  //Serial.println('t');
+  
   if(millis()-__pedalTopChangedTime > PEDAL_DEBOUNCE_TIME) {// debounce prevention
+    //Serial.println("tx");
     boolean pedalTopState = digitalRead(__pedalInputTopPin);
     if(pedalTopState != __pedalTopPrevState) {
       if(pedalTopState == HIGH) { // if left top (for actual pedal change to HIGH
@@ -71,7 +72,7 @@ class Pedal {
       __pedalPressingTime = 0;
       
       __pedalTopChangedTime = 0;
-      __pedalTopPrevState = HIGH;
+      __pedalTopPrevState = LOW;
       
       pressingTime = 0;
       force = 0;
