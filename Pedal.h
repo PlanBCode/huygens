@@ -7,6 +7,7 @@ int __pedalInputBottomPin;
 
 volatile bool __pedalPressing;
 volatile bool __pedalPressed;
+volatile bool __pedalEnabled;
 
 volatile long unsigned int __pedalStartPressingTime;
 volatile long unsigned int __pedalEndPressingTime;
@@ -17,7 +18,7 @@ volatile long unsigned int __pedalTopChangedTime;
 volatile boolean __pedalTopPrevState;
 
 void pedalTopChanged() {
-  
+  if(!__pedalEnabled) return;
   if(millis()-__pedalTopChangedTime > PEDAL_DEBOUNCE_TIME) {// debounce prevention
     //Serial.println("tx");
     boolean pedalTopState = digitalRead(__pedalInputTopPin);
@@ -38,7 +39,8 @@ void pedalTopChanged() {
   }
 }
 void pedalBottomChanged() {
-  //Serial.print('b');
+  if(!__pedalEnabled) return;
+  //Serial.println('b');
   if(__pedalPressing && digitalRead(__pedalInputBottomPin) == LOW) { // if reached bottom
     //Serial.println('b');
     __pedalEndPressingTime = millis();
@@ -56,7 +58,7 @@ class Pedal {
   
   public: 
     //int maxPressingTime;
-    int pressingTime;
+    long unsigned int pressingTime;
     float force;
     
     Pedal(int inputTopPin, int inputBottomPin, 
@@ -114,6 +116,12 @@ class Pedal {
         pressedHandler(force);
       }
       //delay(500);
+    }
+    void enable() {
+      __pedalEnabled = true;
+    }
+    void disable() {
+      __pedalEnabled = false;
     }
 };
 

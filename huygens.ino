@@ -129,7 +129,7 @@ void setup() {
     Serial.println("");
   #endif
   setStartObject(currentStartObject);
-  
+  pedal.enable();
   /*leds.enableObject(a);
   leds.enableObject(c);
   leds.enableObject(e);
@@ -301,13 +301,15 @@ void gotoState(int newState) {
   switch(newState) {
     case DEFAULT_STATE: 
       pedal.reset(); // reset state of pedal (could have changed by interrupt
+      pedal.enable(); // reset state of pedal (could have changed by interrupt
       leds.disableAllObjects();
       
       setStartObject(currentStartObject);
       
       break;
     case UP_STATE: 
-
+      pedal.disable();
+      
       pickRoute();
       
       #ifdef DEBUG_FLOW
@@ -329,25 +331,26 @@ void gotoState(int newState) {
       #endif
       break;
     case NOTIFY_STATE:
-      delay(1000);
+      //delay(1000);
       
       leds.disableAllObjects();
       //Serial.print("currentObject: ");
       //Serial.println(currentObject);
       leds.enableObject(currentObject);
       
-      delay(1000);
+      //delay(1000);
       gotoState(DOWN_STATE);
       
       break;
     case DOWN_STATE: 
-      Serial.println("@ down state");
       gotoStep(currentStep);
       break;
   }
   
-  Serial.print("@ state: ");
-  Serial.println(state);
+  #ifdef DEBUG_FLOW
+    Serial.print("@ state: ");
+    Serial.println(state);
+  #endif
 }
 
 void onPedalPressed(float force) {
@@ -381,6 +384,8 @@ void onPedalPressed(float force) {
 }
 
 void onStartObjectSelected(int startObjectPos) {
+  if(state != DEFAULT_STATE) return;
+  
   int startObject = routeStartObjects[startObjectPos];
   setStartObject(startObject);
 }
@@ -482,10 +487,12 @@ void gotoStep(int newStep) {
   if(newStep >= 0) { // is stepping to an object
     currentObject = routes[MAX_ROUTE_STEPS*currentRoute+newStep];
     
-    Serial.print("  currentObject: ");
-    Serial.print(currentObject);
-    Serial.print(' ');
-    Serial.println(objectNames[currentObject]);
+    #ifdef DEBUG_FLOW
+      Serial.print("  currentObject: ");
+      Serial.print(currentObject);
+      Serial.print(' ');
+      Serial.println(objectNames[currentObject]);
+    #endif
     
     // highlight next object
     leds.enableObject(currentObject);
