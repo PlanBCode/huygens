@@ -29,7 +29,7 @@
 //#define DEBUG_PEDAL_VERBOSE
 //#define DEBUG_START_OBJECT_SELECTOR
 //#define DISABLE_LEDS
-//#define OVERRULE_ROUTE 2 // overrule selected route 
+//#define OVERRULE_ROUTE 5 // overrule selected route 
 //#define OVERRULE_TARGET_POS 0.90 // overrule the position of the TijdWijzer when the pedal is pressed
 //#define OVERRULE_AUDIO_DURATION 5000 // limit audio duration (time per route step) for quick testing
 
@@ -66,8 +66,8 @@ int motorEnablePin       = 10;
 int motorSlewPin         = 9;
 int motorInversePin      = 8;
 // startObjects pins
-//int startObjectInputPins[] = {2,7,5,3}; // input of start object selection slider
-int startObjectInputPins[] = {1,6,4,2}; // input of start object selection slider
+int startObjectInputPins[] = {2,7,5,3}; // input of start object selection slider
+//int startObjectInputPins[] = {1,6,4,2}; // input of start object selection slider
 
 // pedal pins
 int pedalInputTopPin     = 21; //2;
@@ -76,9 +76,7 @@ int inputTopInterrupt    = 2; //0;
 int inputBottomInterrupt = 3; //1;
 
 ////////////// PARTS //////////////
-Pedal pedal(pedalInputTopPin,pedalInputBottomPin,
-            inputTopInterrupt,inputBottomInterrupt,
-            onPedalPressed);
+Pedal pedal(pedalInputTopPin, pedalInputBottomPin, onPedalPressed);
 StartObjectSelector startObjectSelector(startObjectInputPins, onStartObjectSelected);
 Tijdwijzer tijdWijzer(motorPosInputPin, motorSpeedPin, motorInversePin, motorEnablePin, motorSlewPin, motorFBPin, pointerBottomPos, pointerTopPos);
 Leds leds(objectLedsPins);
@@ -129,7 +127,7 @@ void setup() {
     Serial.println("");
   #endif
   setStartObject(currentStartObject);
-  pedal.enable();
+  //pedal.enable();
   /*leds.enableObject(a);
   leds.enableObject(c);
   leds.enableObject(e);
@@ -174,7 +172,6 @@ void loop()  {
     
       startObjectSelector.update();
       pedal.update();
-      
       
       break;
     case UP_STATE: 
@@ -248,7 +245,7 @@ void loop()  {
         float objectPosition = objectPositions[object];
       }
       
-      #ifdef DEBUG_FLOW
+      /*#ifdef DEBUG_FLOW
         //if(round(millis()/20)*20%1000 == 0) {
         if(millis()-prevPosPrintTime > posPrintInterval && prevPrintedPos != tijdWijzer.getPosition()) {
           Serial.print(tijdWijzer.getPosition());
@@ -257,7 +254,7 @@ void loop()  {
           prevPosPrintTime = millis();
           prevPrintedPos = tijdWijzer.getPosition();
         }
-      #endif
+      #endif*/
       
       if(fabs(tijdWijzer.getTargetPosition()-tijdWijzer.getPosition()) < 0.01) { // pointer at target pos?
         gotoState(NOTIFY_STATE);
@@ -268,7 +265,7 @@ void loop()  {
       break;
     case DOWN_STATE: 
       
-      #ifdef DEBUG_FLOW
+      /*#ifdef DEBUG_FLOW
         //if(millis())
         if(millis()-prevPosPrintTime > posPrintInterval && prevPrintedPos != tijdWijzer.getPosition()) {
           Serial.print(tijdWijzer.getPosition());
@@ -277,7 +274,7 @@ void loop()  {
           prevPosPrintTime = millis();
           prevPrintedPos = tijdWijzer.getPosition();
         }
-      #endif
+      #endif*/
       
       /*if(fabs(0-tijdWijzer.getPosition()) < 0.01) { // pointer at bottom?
         gotoState(DEFAULT_STATE);
@@ -300,15 +297,15 @@ void gotoState(int newState) {
   
   switch(newState) {
     case DEFAULT_STATE: 
-      pedal.reset(); // reset state of pedal (could have changed by interrupt
-      pedal.enable(); // reset state of pedal (could have changed by interrupt
+      //pedal.reset(); // reset state of pedal (could have changed by interrupt
+      //pedal.enable(); // reset state of pedal (could have changed by interrupt
       leds.disableAllObjects();
       
       setStartObject(currentStartObject);
       
       break;
     case UP_STATE: 
-      pedal.disable();
+      //pedal.disable();
       
       pickRoute();
       

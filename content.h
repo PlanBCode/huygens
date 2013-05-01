@@ -159,10 +159,10 @@ String objectTracks[]  = {
 int routes[] = {
   onrust,          grasshopper,   kwarts,     atoomklok,   gps,      -1,           -1, //
   waterpas,        theodoliet,    greenwich,  gps,         -1,       -1,           -1, //
-  kosmo,           micromegas,    panspermia, ureymiller,  drake,    marswagen,    seti,//
+  kosmo,           micromegas,    panspermia, ureymiller,  drake,    marswagen,    seti, //
   kosmo,           micromegas,    panspermia, marschannels,voyager,  marswagen,    -1, //
   huygensoculair,  telescoop,     voyager,    marswagen,   -1,       -1,           -1, //
-  huygensoculair2, toverlantaarn, zoetrope,   film,        beamer,   -1,           -1 // 
+  huygensoculair2, toverlantaarn, zoetrope,   film,        beamer,   -1,           -1  //
 };
 // start objects per route (to link start object in closet to routes)
 int startObjectsPerRoute[] = {
